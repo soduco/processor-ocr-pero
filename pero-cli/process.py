@@ -92,7 +92,7 @@ class PeroOCREngine:
                 e = dict(box=bbox, type="LINE", text=line.transcription, parent=id)
                 output_json.append(e)
         
-        with open(output_dir / f"{istem}.json", "w") as f:
+        with open(output_dir / f"{istem}.json", "w", encoding="utf-8") as f:
             json.dump(output_json, f, ensure_ascii=False)
         
         return output_json
