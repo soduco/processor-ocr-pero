@@ -35,7 +35,7 @@ if not cf.exists():
     tmpdir = cf.parent
     zipfile = cf.with_name("pero-printed_modern-public-2022-11-18.zip")
     cmd = ["wget", "https://www.lrde.epita.fr/~jchazalo/SHARE/pero-printed_modern-public-2022-11-18.zip", "-P", str(tmpdir)] 
-    #subprocess.call(cmd)
+    subprocess.call(cmd)
     cmd = ["unzip", str(zipfile), "-d", str(tmpdir)]
     subprocess.call(cmd)
 
