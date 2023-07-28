@@ -91,7 +91,7 @@ class PeroOCREngine:
                 bbox = (x + xmin, y + ymax, xmax - xmin, ymax - ymin)
                 e = dict(box=bbox, type="LINE", text=line.transcription, parent=id)
                 output_json.append(e)
-        
+
         with open(output_dir / f"{istem}.json", "w", encoding="utf-8") as f:
             json.dump(output_json, f, ensure_ascii=False)
         
