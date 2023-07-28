@@ -14,6 +14,7 @@ parser.add_argument("-i", "--input-dir", required=True, type=pathlib.Path)
 parser.add_argument("-o", "--output-dir", required=True, type=pathlib.Path)
 parser.add_argument("-f", "--export-format", required=True, choices=["json", "alto", "page", "image"], action="append")
 parser.add_argument("--pero-config-file", default="/tmp/pero-printed_modern-public-2022-11-18/config_cpu.ini", type=pathlib.Path)
+parser.add_argument("--no-overwrite", action="store_true")
 
 
 args = parser.parse_args()
@@ -45,6 +46,9 @@ args.output_dir.mkdir(exist_ok=True)
 ## Run
 pero = PeroOCREngine(str(cf))
 for ima, js in tqdm(zip(input_images, input_jsons)):
+    if args.no_overwrite and (args.output_dir / js).exists():
+        continue
+
     pero.process(args.input_dir / ima, args.input_dir / js, args.output_dir, exports=args.export_format)
 
 
