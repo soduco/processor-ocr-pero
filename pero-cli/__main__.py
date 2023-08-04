@@ -1,11 +1,9 @@
 from argparse import ArgumentParser
 import pathlib
 import glob
-import subprocess 
+import subprocess
 from tqdm import tqdm
 from .process import PeroOCREngine
-
-
 
 
 
@@ -45,11 +43,19 @@ args.output_dir.mkdir(exist_ok=True)
 
 ## Run
 pero = PeroOCREngine(str(cf))
-for ima, js in tqdm(zip(input_images, input_jsons)):
-    if args.no_overwrite and (args.output_dir / js).exists():
-        continue
+jobs = list(zip(input_images, input_jsons))
+for ima, js in tqdm(jobs):
 
-    pero.process(args.input_dir / ima, args.input_dir / js, args.output_dir, exports=args.export_format)
+    lockfile = (args.output_dir / js)
+    try:
+        if args.no_overwrite and lockfile.exists():
+            continue
+
+        lockfile.touch()
+        pero.process(args.input_dir / ima, args.input_dir / js, args.output_dir, exports=args.export_format)
+    except Exception as err:
+        print(err)
+
 
 
 
