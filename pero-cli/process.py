@@ -48,7 +48,6 @@ class PeroOCREngine:
 
 
         # Read the document page image.
-        print("Read image & json")
         image = cv2.imread(str(input_image), 1)
 
         with open(input_json) as f:
