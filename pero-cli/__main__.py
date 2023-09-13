@@ -16,16 +16,24 @@ parser.add_argument("--no-overwrite", action="store_true")
 
 
 args = parser.parse_args()
-input_images = sorted(glob.glob("*.jpg", root_dir=args.input_dir))
-input_jsons = sorted(glob.glob("*.json", root_dir=args.input_dir))
+input_images = sorted(glob.glob("*/*.jpg", root_dir=args.input_dir, recursive=True))
+input_jsons = sorted(glob.glob("*/*.json", root_dir=args.input_dir, recursive=True))
+
+input_images = list(map(pathlib.Path, input_images))
+input_jsons = list(map(pathlib.Path, input_jsons))
+
 
 # Sanity check
-stems = list(map(lambda x: pathlib.Path(x).stem, input_images))
-stems_ = list(map(lambda x: pathlib.Path(x).stem, input_jsons))
+stems = list(map(lambda x: (x.parent.name, x.stem), input_images))
+stems_ = list(map(lambda x: (x.parent.name, x.stem), input_jsons))
+if len(stems) == 0:
+    raise RuntimeError("No matching files.")
 if stems != stems_:
     print(stems)
     print(stems_)
     raise RuntimeError("JSON and image lists mismatch.")
+
+
 
 # Check config file
 cf : pathlib.Path = args.pero_config_file 
@@ -46,11 +54,10 @@ pero = PeroOCREngine(str(cf))
 jobs = list(zip(input_images, input_jsons))
 for ima, js in tqdm(jobs):
 
-    lockfile = (args.output_dir / js)
+    lockfile = (args.output_dir / f"{js.parent.name}-{js.stem}.lock")
     try:
         if args.no_overwrite and lockfile.exists():
             continue
-
         lockfile.touch()
         pero.process(args.input_dir / ima, args.input_dir / js, args.output_dir, exports=args.export_format)
     except Exception as err:

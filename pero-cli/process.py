@@ -71,8 +71,15 @@ class PeroOCREngine:
         Returns:
             _type_: _description_
         """
+        dir = input_json.parent.name
+        page = input_json.stem
+
+
         if not output_dir.is_dir():
             raise RuntimeError("Invalid output directory.")
+
+        for ex in exports:
+            (output_dir / ex / dir).mkdir(exist_ok=True, parents=True)
 
 
         # Read the document page image.
@@ -83,32 +90,35 @@ class PeroOCREngine:
             data = json.load(f)
             columns = [x for x in data if x["type"] == "COLUMN_LEVEL_1"]
 
-        istem = input_image.stem
+        # Remove previously detected lines
+        data = filter(lambda x: x["type"] != "LINE", data)
+
+
         output_json = list(data)
         for r in columns:
             (x,y,w,h) = r["box"]
             id = r["id"]
-            ostem = f"{istem}-r{id}"
+
             crop = image[y:y+h, x:x+w, ...]
             # convert grayscale to color if needed
             if crop.ndim == 2:
                 crop = np.tile(crop[..., np.newaxis], (1, 1, 3))
-            
+
 
             # Init empty page content. 
             # This object will be updated by the ocr pipeline. id can be any string and it is used to identify the page.
-            page_layout = PageLayout(id=ostem, page_size=(image.shape[0], image.shape[1]))
+            page_layout = PageLayout(id=f"{dir}/{page}", page_size=(image.shape[0], image.shape[1]))
             # Process the image by the OCR pipeline
             page_layout = self.page_parser.process_page(crop, page_layout)
 
 
             if "page" in exports:
-                page_layout.to_pagexml(str(output_dir / f"{ostem}_PAGE.xml"))
+                page_layout.to_pagexml(str(output_dir / f"page/{dir}/{page}.xml"))
             if "alto" in exports:
-                page_layout.to_altoxml(str(output_dir / f"{ostem}_ALTO.xml"))
+                page_layout.to_altoxml(str(output_dir / f"alto/{dir}/{page}.xml"))
             if "image" in exports:
-                rendered_image = page_layout.render_to_image(crop) 
-                cv2.imwrite(str(output_dir / f"{ostem}_debug.jpg"), rendered_image)
+                rendered_image = page_layout.render_to_image(crop)
+                cv2.imwrite(str(output_dir / f"image/{dir}/{page}.jpg"), rendered_image)
 
             lines = [] 
             for line in page_layout.lines_iterator():
@@ -123,11 +133,11 @@ class PeroOCREngine:
                 output_json.append(e)
             add_margin(lines, r["box"])
 
-        with open(output_dir / f"{istem}.json", "w", encoding="utf-8") as f:
+        with open(output_dir / f"json/{dir}/{page}.json", "w", encoding="utf-8") as f:
             json.dump(output_json, f, ensure_ascii=False)
-        
+
         return output_json
-            
+
 
 
 
