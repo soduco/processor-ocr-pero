@@ -2,7 +2,7 @@
 from pero_ocr.document_ocr.layout import PageLayout, TextLine
 from pero_ocr.document_ocr.page_parser import PageParser
 
-from typing import Tuple
+from typing import Tuple, List, Any
 
 import pathlib
 import configparser
@@ -10,6 +10,34 @@ import cv2
 import json
 import numpy as np
 
+def add_margin(lines : List[Any], column_box: Tuple[int,int,int,int], normalize=True):
+    '''
+    Take a list of lines and add the left/right indent (relative and absolute) value to each LINE
+    If normalize, the indentation value is normalized with the column width
+    '''
+    (x, _, w, _) = column_box
+    for e in lines:
+        (x0, _, w0, _) = e["box"]
+        left = np.clip(x0 - x, 0, w)
+        right = np.clip((x + w) - (x0 + w0), 0, w)
+        if normalize:
+            left = left / w
+            right = right / w
+        e["margin-left"] = left
+        e["margin-right"] = right
+
+
+    
+    cline = lines[0]
+    pml, pmr = cline["margin-left"],  cline["margin-right"]
+    cline["margin-left-relative"] = 0
+    cline["margin-right-relative"] = 0
+    if len(lines) > 1:
+        for cline in lines[1:]:
+            cml, cmr = cline["margin-left"],  cline["margin-right"]
+            cline["margin-left-relative"] = cml - pml
+            cline["margin-right-relative"] = cmr - pmr
+            pml, pmr = cml, cmr
 
 
     
@@ -48,7 +76,7 @@ class PeroOCREngine:
 
 
         # Read the document page image.
-        print("Read image & json")
+        #print("Read image & json")
         image = cv2.imread(str(input_image), 1)
 
         with open(input_json) as f:
@@ -82,15 +110,18 @@ class PeroOCREngine:
                 rendered_image = page_layout.render_to_image(crop) 
                 cv2.imwrite(str(output_dir / f"{ostem}_debug.jpg"), rendered_image)
 
+            lines = [] 
             for line in page_layout.lines_iterator():
                 line : TextLine
                 xmin = min(p[0] for p in line.polygon)
                 xmax = max(p[0] for p in line.polygon)
                 ymin = min(p[1] for p in line.polygon)
                 ymax = max(p[1] for p in line.polygon)
-                bbox = (x + xmin, y + ymax, xmax - xmin, ymax - ymin)
+                bbox = (x + xmin, y + ymin, xmax - xmin, ymax - ymin)
                 e = dict(box=bbox, type="LINE", text=line.transcription, parent=id)
+                lines.append(e)
                 output_json.append(e)
+            add_margin(lines, r["box"])
 
         with open(output_dir / f"{istem}.json", "w", encoding="utf-8") as f:
             json.dump(output_json, f, ensure_ascii=False)
