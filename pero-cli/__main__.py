@@ -16,8 +16,8 @@ parser.add_argument("--no-overwrite", action="store_true")
 
 
 args = parser.parse_args()
-input_images = sorted(glob.glob("*/*.jpg", root_dir=args.input_dir, recursive=True))
-input_jsons = sorted(glob.glob("*/*.json", root_dir=args.input_dir, recursive=True))
+input_images = sorted(glob.glob("**/*.jpg", root_dir=args.input_dir, recursive=True))
+input_jsons = sorted(glob.glob("**/*.json", root_dir=args.input_dir, recursive=True))
 
 input_images = list(map(pathlib.Path, input_images))
 input_jsons = list(map(pathlib.Path, input_jsons))

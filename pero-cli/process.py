@@ -15,6 +15,9 @@ def add_margin(lines : List[Any], column_box: Tuple[int,int,int,int], normalize=
     Take a list of lines and add the left/right indent (relative and absolute) value to each LINE
     If normalize, the indentation value is normalized with the column width
     '''
+    if len(lines) == 0:
+        return
+
     (x, _, w, _) = column_box
     for e in lines:
         (x0, _, w0, _) = e["box"]
