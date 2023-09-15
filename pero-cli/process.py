@@ -122,15 +122,16 @@ class PeroOCREngine:
                 rendered_image = page_layout.render_to_image(crop)
                 cv2.imwrite(str(output_dir / f"image/{dir}/{page}.jpg"), rendered_image)
 
-            lines = [] 
-            for line in page_layout.lines_iterator():
+            lines = []
+            start = 10000 
+            for i, line in enumerate(page_layout.lines_iterator()):
                 line : TextLine
                 xmin = min(p[0] for p in line.polygon)
                 xmax = max(p[0] for p in line.polygon)
                 ymin = min(p[1] for p in line.polygon)
                 ymax = max(p[1] for p in line.polygon)
                 bbox = (x + xmin, y + ymin, xmax - xmin, ymax - ymin)
-                e = dict(box=bbox, type="LINE", text=line.transcription, parent=id)
+                e = dict(box=bbox, type="LINE", text=line.transcription, parent=id, id=start + i)
                 lines.append(e)
                 output_json.append(e)
             add_margin(lines, r["box"])
