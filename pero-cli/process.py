@@ -115,12 +115,12 @@ class PeroOCREngine:
 
 
             if "page" in exports:
-                page_layout.to_pagexml(str(output_dir / f"page/{dir}/{page}.xml"))
+                page_layout.to_pagexml(str(output_dir / f"page/{dir}/{page}-{r}.xml"))
             if "alto" in exports:
-                page_layout.to_altoxml(str(output_dir / f"alto/{dir}/{page}.xml"))
+                page_layout.to_altoxml(str(output_dir / f"alto/{dir}/{page}-{r}.xml"))
             if "image" in exports:
                 rendered_image = page_layout.render_to_image(crop)
-                cv2.imwrite(str(output_dir / f"image/{dir}/{page}.jpg"), rendered_image)
+                cv2.imwrite(str(output_dir / f"image/{dir}/{page}-{r}.jpg"), rendered_image)
 
             lines = []
             start = 10000 
